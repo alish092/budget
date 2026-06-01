@@ -94,6 +94,59 @@ button.primary:hover { opacity: 0.88; }
 .empty { text-align: center; padding: 32px; color: var(--text3); font-size: 13px; }
 
 .import-area { width: 100%; height: 110px; font-size: 11px; font-family: var(--mono); padding: 10px; resize: vertical; }
+
+/* ── MOBILE ── */
+@media (max-width: 600px) {
+  .app { padding: 16px 12px 80px; }
+  .header { margin-bottom: 16px; padding-bottom: 14px; }
+  .header-left h1 { font-size: 18px; }
+
+  /* Нижний таб-бар вместо верхнего */
+  .tabs {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    margin: 0; border-radius: 0;
+    padding: 6px 4px 10px;
+    border-top: 1px solid var(--border);
+    background: var(--bg2);
+    z-index: 100;
+    gap: 0;
+  }
+  .tab { font-size: 10px; padding: 6px 2px 4px; border-radius: 6px; }
+
+  /* Метрики — 2x2 */
+  .metrics { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .metric { padding: 10px 12px; }
+  .metric-value { font-size: 15px; }
+
+  /* Графики — в столбик */
+  .grid2 { grid-template-columns: 1fr; }
+
+  /* Таблица транзакций — скрыть банк, сократить */
+  .tx-bank-col { display: none; }
+  td, th { padding: 7px 6px; font-size: 11px; }
+
+  /* Форма счёта — в столбик */
+  .acc-form-grid { grid-template-columns: 1fr 1fr !important; }
+  .acc-form-grid .acc-note-field { display: none; }
+
+  /* Форма контрагента — в столбик */
+  .cp-form-grid { grid-template-columns: 1fr !important; }
+
+  /* Фильтры транзакций */
+  .tx-filters { flex-direction: column; }
+  .tx-filters select { width: 100%; }
+
+  /* Карточки счетов */
+  .account-balance { font-size: 14px; }
+
+  /* Импорт */
+  .import-area { height: 80px; font-size: 11px; }
+  .prompt-btn { padding: 10px 12px; font-size: 12px; }
+
+  /* Месяц бар */
+  .month-bar { gap: 4px; }
+  .month-btn { font-size: 10px; padding: 4px 10px; }
+}
 </style>
 </head>
 <body>
@@ -151,12 +204,12 @@ button.primary:hover { opacity: 0.88; }
     </div>
     <div class="card">
       <div class="card-title">Обновить счёт</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;">
+      <div class="acc-form-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;">
         <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Банк</div>
           <select id="acc-bank" style="width:100%"><option>Kaspi</option><option>Депозит Kaspi</option><option>Freedom</option><option>Halyk</option><option>Алтынбанк</option><option>Наличка</option></select>
         </div>
         <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Остаток (₸)</div><input type="number" id="acc-balance" placeholder="0" style="width:100%"></div>
-        <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Примечание</div><input type="text" id="acc-note" placeholder="необязательно" style="width:100%"></div>
+        <div class="acc-note-field"><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Примечание</div><input type="text" id="acc-note" placeholder="необязательно" style="width:100%"></div>
         <button class="primary" onclick="saveAccount()" style="height:36px;">Сохранить</button>
       </div>
     </div>
@@ -168,14 +221,14 @@ button.primary:hover { opacity: 0.88; }
 
   <!-- TRANSACTIONS -->
   <div id="page-transactions" class="page">
-    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+    <div class="tx-filters" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
       <select id="filter-cat" onchange="renderTransactions()" style="flex:1;min-width:120px;"><option value="">Все категории</option></select>
       <select id="filter-month" onchange="renderTransactions()" style="flex:1;min-width:100px;"><option value="">Все месяцы</option></select>
       <select id="filter-bank" onchange="renderTransactions()" style="flex:1;min-width:100px;"><option value="">Все банки</option></select>
     </div>
     <div class="card" style="padding:0;overflow:hidden;">
       <table>
-        <thead><tr><th style="padding-left:16px">Дата</th><th>Контрагент</th><th>Категория</th><th>Банк</th><th style="text-align:right;padding-right:16px">Сумма</th></tr></thead>
+        <thead><tr><th style="padding-left:16px">Дата</th><th>Контрагент</th><th>Категория</th><th class="tx-bank-col">Банк</th><th style="text-align:right;padding-right:16px">Сумма</th></tr></thead>
         <tbody id="tx-table"></tbody>
       </table>
     </div>
@@ -189,7 +242,7 @@ button.primary:hover { opacity: 0.88; }
     </div>
     <div id="add-cp-form" style="display:none;" class="card">
       <div class="card-title">Новый контрагент</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div class="cp-form-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
         <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Название (часть строки)</div><input type="text" id="cp-name" style="width:100%"></div>
         <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Категория</div><select id="cp-cat" style="width:100%"></select></div>
         <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Тип</div>
@@ -505,7 +558,7 @@ function renderTransactions(){
   document.getElementById('tx-table').innerHTML=txs.map(t=>{
     const cp=matchCP(t.description);const cat=cp?catById(cp.cat):catById('other');
     const tb=cp&&typeMap[cp.type]?`<span class="badge b-gray" style="margin-left:4px">${typeMap[cp.type]}</span>`:'';
-    return`<tr><td style="white-space:nowrap;color:var(--text2);font-family:var(--mono);padding-left:16px">${t.date.slice(5)}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.description}">${t.description}</td><td><span class="badge ${cat.badge}">${cat.label}</span>${tb}</td><td style="color:var(--text2)">${t.bank||''}</td><td style="text-align:right;font-weight:700;font-family:var(--mono);color:${t.amount<0?'var(--red)':'var(--green)'};padding-right:16px">${fmtS(t.amount)}</td></tr>`;
+    return`<tr><td style="white-space:nowrap;color:var(--text2);font-family:var(--mono);padding-left:16px">${t.date.slice(5)}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.description}">${t.description}</td><td><span class="badge ${cat.badge}">${cat.label}</span>${tb}</td><td class="tx-bank-col" style="color:var(--text2)">${t.bank||''}</td><td style="text-align:right;font-weight:700;font-family:var(--mono);color:${t.amount<0?'var(--red)':'var(--green)'};padding-right:16px">${fmtS(t.amount)}</td></tr>`;
   }).join('')||'<tr><td colspan="5" class="empty">Нет транзакций</td></tr>';
 }
 
@@ -591,4 +644,3 @@ function resetAll(){
 </script>
 </body>
 </html>
-
