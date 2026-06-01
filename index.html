@@ -1,1 +1,594 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Семейный бюджет</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0F0F0E;
+  --bg2: #1A1A18;
+  --bg3: #242422;
+  --border: rgba(255,255,255,0.08);
+  --text: #F0EDEA;
+  --text2: #888780;
+  --text3: #555450;
+  --green: #4ADE80;
+  --red: #F87171;
+  --blue: #60A5FA;
+  --amber: #FBBF24;
+  --purple: #A78BFA;
+  --pink: #F472B6;
+  --font: 'Manrope', sans-serif;
+  --mono: 'IBM Plex Mono', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 14px; min-height: 100vh; }
+::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: var(--bg); } ::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 2px; }
+
+.app { max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+.header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.header-left h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+.header-left p { font-size: 12px; color: var(--text2); margin-top: 4px; font-family: var(--mono); }
+
+.tabs { display: flex; gap: 2px; margin-bottom: 24px; background: var(--bg2); border-radius: 10px; padding: 4px; }
+.tab { flex: 1; font-size: 12px; font-weight: 600; padding: 8px 4px; border-radius: 7px; border: none; cursor: pointer; background: transparent; color: var(--text2); transition: all 0.15s; font-family: var(--font); text-align: center; }
+.tab.active { background: var(--bg3); color: var(--text); }
+
+.page { display: none; } .page.active { display: block; }
+
+.metrics { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 16px; }
+.metric { background: var(--bg2); border-radius: 12px; padding: 14px 16px; border: 1px solid var(--border); }
+.metric-label { font-size: 11px; color: var(--text2); margin-bottom: 6px; font-family: var(--mono); }
+.metric-value { font-size: 18px; font-weight: 700; font-family: var(--mono); }
+
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+.card-title { font-size: 11px; font-weight: 600; color: var(--text2); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.08em; font-family: var(--mono); }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+td, th { padding: 8px 8px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
+th { font-size: 11px; font-weight: 600; color: var(--text3); font-family: var(--mono); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+.badge { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 20px; white-space: nowrap; font-weight: 600; font-family: var(--mono); }
+.b-green { background: rgba(74,222,128,0.12); color: var(--green); }
+.b-red { background: rgba(248,113,113,0.12); color: var(--red); }
+.b-blue { background: rgba(96,165,250,0.12); color: var(--blue); }
+.b-gray { background: rgba(255,255,255,0.06); color: var(--text2); }
+.b-purple { background: rgba(167,139,250,0.12); color: var(--purple); }
+.b-amber { background: rgba(251,191,36,0.12); color: var(--amber); }
+.b-pink { background: rgba(244,114,182,0.12); color: var(--pink); }
+
+select, input, textarea { font-size: 12px; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg3); color: var(--text); font-family: var(--font); outline: none; }
+select:focus, input:focus, textarea:focus { border-color: rgba(255,255,255,0.2); }
+button { font-size: 12px; padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg3); color: var(--text); cursor: pointer; font-family: var(--font); font-weight: 600; transition: all 0.15s; }
+button:hover { border-color: rgba(255,255,255,0.2); background: #2e2e2c; }
+button.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+button.primary:hover { opacity: 0.88; }
+
+.month-bar { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.month-btn { font-size: 11px; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); cursor: pointer; background: transparent; color: var(--text2); font-family: var(--mono); font-weight: 500; transition: all 0.15s; }
+.month-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+.bar-bg { flex: 1; height: 4px; background: var(--bg3); border-radius: 2px; }
+.bar-fill { height: 4px; border-radius: 2px; }
+.bar-wrap { display: flex; align-items: center; gap: 8px; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
+.legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+.account-card { background: var(--bg3); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
+.account-name { font-size: 13px; font-weight: 600; }
+.account-meta { font-size: 11px; color: var(--text2); font-family: var(--mono); margin-top: 2px; }
+.account-balance { font-size: 16px; font-weight: 700; font-family: var(--mono); color: var(--green); }
+
+.prompt-btn { width: 100%; text-align: left; padding: 12px 14px; margin-bottom: 8px; background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; color: var(--text2); font-size: 12px; cursor: pointer; transition: all 0.15s; font-family: var(--font); }
+.prompt-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+.empty { text-align: center; padding: 32px; color: var(--text3); font-size: 13px; }
+
+.import-area { width: 100%; height: 110px; font-size: 11px; font-family: var(--mono); padding: 10px; resize: vertical; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-left">
+      <h1>Семейный бюджет</h1>
+      <p id="last-updated">нет данных</p>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showPage('dashboard',this)">Дашборд</button>
+    <button class="tab" onclick="showPage('accounts',this)">Счета</button>
+    <button class="tab" onclick="showPage('transactions',this)">Транзакции</button>
+    <button class="tab" onclick="showPage('counterparties',this)">Контрагенты</button>
+    <button class="tab" onclick="showPage('import',this)">Импорт</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="page-dashboard" class="page active">
+    <div class="month-bar" id="month-bar"></div>
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">Доход</div><div class="metric-value" style="color:var(--green)" id="m-income">—</div></div>
+      <div class="metric"><div class="metric-label">Расходы</div><div class="metric-value" style="color:var(--red)" id="m-expense">—</div></div>
+      <div class="metric"><div class="metric-label">Кредиты</div><div class="metric-value" style="color:var(--purple)" id="m-loans">—</div></div>
+      <div class="metric"><div class="metric-label">Остаток</div><div class="metric-value" id="m-balance">—</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">По категориям</div>
+        <div class="legend" id="chart-legend"></div>
+        <div style="position:relative;width:100%;height:180px;"><canvas id="pieChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Топ расходов</div>
+        <table><tbody id="top-cats"></tbody></table>
+      </div>
+    </div>
+    <div class="card" id="transit-block" style="display:none;">
+      <div class="card-title">Транзит <span class="badge b-gray">не твои деньги</span></div>
+      <table><tbody id="transit-table"></tbody></table>
+    </div>
+  </div>
+
+  <!-- ACCOUNTS -->
+  <div id="page-accounts" class="page">
+    <div class="card">
+      <div class="card-title">Текущие остатки</div>
+      <div id="accounts-list"></div>
+      <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:12px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;font-weight:600;">Итого ликвидность</span>
+        <span style="font-size:20px;font-weight:700;color:var(--green);font-family:var(--mono)" id="total-liquid">—</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Обновить счёт</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;align-items:end;">
+        <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Банк</div>
+          <select id="acc-bank" style="width:100%"><option>Kaspi</option><option>Депозит Kaspi</option><option>Freedom</option><option>Halyk</option><option>Алтынбанк</option><option>Наличка</option></select>
+        </div>
+        <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Остаток (₸)</div><input type="number" id="acc-balance" placeholder="0" style="width:100%"></div>
+        <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Примечание</div><input type="text" id="acc-note" placeholder="необязательно" style="width:100%"></div>
+        <button class="primary" onclick="saveAccount()" style="height:36px;">Сохранить</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Динамика по месяцам</div>
+      <div style="position:relative;width:100%;height:180px;"><canvas id="monthChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TRANSACTIONS -->
+  <div id="page-transactions" class="page">
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <select id="filter-cat" onchange="renderTransactions()" style="flex:1;min-width:120px;"><option value="">Все категории</option></select>
+      <select id="filter-month" onchange="renderTransactions()" style="flex:1;min-width:100px;"><option value="">Все месяцы</option></select>
+      <select id="filter-bank" onchange="renderTransactions()" style="flex:1;min-width:100px;"><option value="">Все банки</option></select>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table>
+        <thead><tr><th style="padding-left:16px">Дата</th><th>Контрагент</th><th>Категория</th><th>Банк</th><th style="text-align:right;padding-right:16px">Сумма</th></tr></thead>
+        <tbody id="tx-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- COUNTERPARTIES -->
+  <div id="page-counterparties" class="page">
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <input type="text" id="cp-search" placeholder="Поиск контрагента..." oninput="renderCounterparties()" style="flex:1;">
+      <button onclick="toggleAddCP()">+ Добавить</button>
+    </div>
+    <div id="add-cp-form" style="display:none;" class="card">
+      <div class="card-title">Новый контрагент</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Название (часть строки)</div><input type="text" id="cp-name" style="width:100%"></div>
+        <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Категория</div><select id="cp-cat" style="width:100%"></select></div>
+        <div><div style="font-size:11px;color:var(--text2);margin-bottom:4px;">Тип</div>
+          <select id="cp-type" style="width:100%">
+            <option value="own">Мои расходы</option>
+            <option value="transit">Транзит Гульжан</option>
+            <option value="income">Доход</option>
+            <option value="loan">Кредит</option>
+            <option value="self">Межбанк (себе)</option>
+            <option value="transit_other">Транзит (другой)</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;"><button class="primary" onclick="saveCP()">Сохранить</button><button onclick="toggleAddCP()">Отмена</button></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden;">
+      <table>
+        <thead><tr><th style="padding-left:16px">Контрагент</th><th>Категория</th><th>Тип</th><th style="text-align:right;padding-right:16px">Операций</th></tr></thead>
+        <tbody id="cp-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- IMPORT -->
+  <div id="page-import" class="page">
+    <div class="card">
+      <div class="card-title">Как загружать выписку</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:16px;">
+        1. Загрузи PDF выписку в чат с Claude<br>
+        2. Claude вернёт JSON — скопируй его<br>
+        3. Вставь ниже → нажми «Загрузить»
+      </div>
+      <button class="prompt-btn" onclick="copyPrompt('parse')">📄 Скопировать промпт для парсинга PDF →</button>
+      <button class="prompt-btn" onclick="copyPrompt('analyze')">📊 Скопировать промпт для анализа расходов →</button>
+      <button class="prompt-btn" onclick="copyPrompt('new_cp')">🔍 Найти новых контрагентов →</button>
+      <div id="copy-status" style="font-size:11px;color:var(--green);margin-top:4px;font-family:var(--mono);"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Вставить JSON</div>
+      <textarea class="import-area" id="json-input" placeholder='[{"date":"2026-06-07","amount":-2420,"description":"Coffee Boom","bank":"Kaspi","type":"expense"}]'></textarea>
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button class="primary" onclick="importJSON()">Загрузить транзакции</button>
+        <button onclick="clearImport()">Очистить</button>
+      </div>
+      <div id="import-status" style="font-size:12px;margin-top:8px;font-family:var(--mono);"></div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--red)">Опасная зона</div>
+      <button onclick="resetAll()" style="color:var(--red);border-color:rgba(248,113,113,0.3);">Удалить все транзакции</button>
+      <span style="font-size:11px;color:var(--text3);margin-left:10px;">База контрагентов сохранится</span>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const CATS=[
+  {id:'food',label:'Продукты',color:'#4ADE80',badge:'b-green'},
+  {id:'restaurant',label:'Рестораны/кофе',color:'#FBBF24',badge:'b-amber'},
+  {id:'poker',label:'Покер',color:'#F87171',badge:'b-red'},
+  {id:'loan',label:'Кредиты',color:'#A78BFA',badge:'b-purple'},
+  {id:'auto',label:'Авто/бензин',color:'#FB923C',badge:'b-red'},
+  {id:'taxi',label:'Такси',color:'#34D399',badge:'b-green'},
+  {id:'subs',label:'Подписки',color:'#94A3B8',badge:'b-gray'},
+  {id:'comm',label:'Связь',color:'#60A5FA',badge:'b-blue'},
+  {id:'gifts',label:'Подарки',color:'#818CF8',badge:'b-purple'},
+  {id:'market',label:'Маркетплейс',color:'#6EE7B7',badge:'b-green'},
+  {id:'home',label:'Дом',color:'#FCD34D',badge:'b-amber'},
+  {id:'health',label:'Медицина',color:'#F472B6',badge:'b-pink'},
+  {id:'kids',label:'Дети',color:'#67E8F9',badge:'b-blue'},
+  {id:'income',label:'Доход',color:'#4ADE80',badge:'b-green'},
+  {id:'transit',label:'Транзит',color:'#555450',badge:'b-gray'},
+  {id:'self',label:'Межбанк',color:'#555450',badge:'b-gray'},
+  {id:'other',label:'Прочее',color:'#555450',badge:'b-gray'},
+];
+
+const DEFAULT_CPS=[
+  {name:'Рехлинг',cat:'food',type:'own'},{name:'REHLING',cat:'food',type:'own'},
+  {name:'Батыркулов',cat:'food',type:'own'},{name:'Euro Spar',cat:'food',type:'own'},
+  {name:'SPAR',cat:'food',type:'own'},{name:'Биосфера',cat:'health',type:'own'},
+  {name:'BIOSFERA',cat:'health',type:'own'},{name:'AISARA',cat:'health',type:'own'},
+  {name:'Айсара',cat:'health',type:'own'},{name:'s-market',cat:'food',type:'own'},
+  {name:'MAGNUM',cat:'food',type:'own'},{name:'SULTAN',cat:'food',type:'own'},
+  {name:'ARBUZ',cat:'food',type:'own'},{name:'SAMA',cat:'food',type:'own'},
+  {name:'SMALL',cat:'food',type:'own'},{name:'ALPAMYS',cat:'food',type:'own'},
+  {name:'DOMASHNIY',cat:'food',type:'own'},{name:'Бобер',cat:'food',type:'own'},
+  {name:'Coffee Boom',cat:'restaurant',type:'own'},
+  {name:'Elixir',cat:'poker',type:'own'},{name:'ELIXIR',cat:'poker',type:'own'},
+  {name:'Espresso Day',cat:'restaurant',type:'own'},{name:'ESPRESSO',cat:'restaurant',type:'own'},
+  {name:'AB Advisory',cat:'poker',type:'own'},{name:'AB ADVISORY',cat:'poker',type:'own'},
+  {name:'Мейржан А.',cat:'poker',type:'own'},{name:'Мухамбедрахим',cat:'poker',type:'own'},
+  {name:'Toyota Financial',cat:'loan',type:'loan'},{name:'TOYOTA',cat:'loan',type:'loan'},
+  {name:'Оплата Kaspi Кредита',cat:'loan',type:'loan'},{name:'Погашение кредита',cat:'loan',type:'loan'},
+  {name:'Платеж по кредиту',cat:'loan',type:'loan'},{name:'Платёж по кредиту',cat:'loan',type:'loan'},
+  {name:'AURIKA',cat:'auto',type:'own'},{name:'HELIOS',cat:'auto',type:'own'},
+  {name:'АЗС',cat:'auto',type:'own'},{name:'Парковка',cat:'auto',type:'own'},
+  {name:'паркинг',cat:'auto',type:'own'},{name:'parking',cat:'auto',type:'own'},
+  {name:'Паркинг',cat:'auto',type:'own'},{name:'YANDEX.GO',cat:'taxi',type:'own'},
+  {name:'Yandex.Go',cat:'taxi',type:'own'},{name:'Jet Sharing',cat:'taxi',type:'own'},
+  {name:'YANDEX.EDA',cat:'restaurant',type:'own'},{name:'Yandex.Еда',cat:'restaurant',type:'own'},
+  {name:'WOLT',cat:'restaurant',type:'own'},{name:'Wolt',cat:'restaurant',type:'own'},
+  {name:'APPLE',cat:'subs',type:'own'},{name:'Apple',cat:'subs',type:'own'},
+  {name:'OPENAI',cat:'subs',type:'own'},{name:'ChatGPT',cat:'subs',type:'own'},
+  {name:'CLAUDE',cat:'subs',type:'own'},{name:'Yandex Plus',cat:'subs',type:'own'},
+  {name:'YANDEX.PLUS',cat:'subs',type:'own'},{name:'Uber',cat:'subs',type:'own'},
+  {name:'UBER',cat:'subs',type:'own'},{name:'Freedom Media',cat:'subs',type:'own'},
+  {name:'Beeline',cat:'comm',type:'own'},{name:'beeline',cat:'comm',type:'own'},
+  {name:'Транстелеком',cat:'comm',type:'own'},{name:'Transtelecom',cat:'comm',type:'own'},
+  {name:'Temu',cat:'market',type:'own'},{name:'TEMU',cat:'market',type:'own'},
+  {name:'Chop X Chop',cat:'home',type:'own'},{name:'CHOP',cat:'home',type:'own'},
+  {name:'VSE DO LAMPOCHKI',cat:'home',type:'own'},
+  {name:'Master-Fish',cat:'gifts',type:'own'},{name:'MASTER-FISH',cat:'gifts',type:'own'},
+  {name:'IMPULSE',cat:'gifts',type:'own'},{name:'Гаухар',cat:'gifts',type:'own'},
+  {name:'Штрафы',cat:'other',type:'own'},{name:'штраф',cat:'other',type:'own'},
+  {name:'Шарики',cat:'kids',type:'own'},{name:'шарики',cat:'kids',type:'own'},
+  {name:'Айжан А.',cat:'transit',type:'transit'},{name:'Гульмира И.',cat:'transit',type:'transit'},
+  {name:'Лариса Л.',cat:'transit',type:'transit'},{name:'Берик М.',cat:'transit',type:'transit'},
+  {name:'Шынболат М.',cat:'self',type:'self'},{name:'Orbis',cat:'income',type:'income'},
+  {name:'ORBIS',cat:'income',type:'income'},{name:'Зарплата',cat:'income',type:'income'},
+  {name:'Perfecta Med',cat:'transit',type:'transit'},{name:'PERFECTA',cat:'transit',type:'transit'},
+  {name:'Bubblzz',cat:'transit',type:'transit'},{name:'Кофанов',cat:'transit',type:'transit'},
+  {name:'Абенова',cat:'transit',type:'transit'},{name:'Жанна Ж.',cat:'income',type:'income'},
+  {name:'Kishlak',cat:'restaurant',type:'own'},{name:'Tasty Food',cat:'restaurant',type:'own'},
+  {name:'Ticketon',cat:'other',type:'own'},{name:'TICKETON',cat:'other',type:'own'},
+  {name:'NEWMEDICAL',cat:'health',type:'transit'},{name:'MEYIRMED',cat:'health',type:'transit'},
+];
+
+const DEFAULT_ACCOUNTS=[
+  {bank:'Kaspi',balance:0,note:'текущий'},
+  {bank:'Депозит Kaspi',balance:84000,note:''},
+  {bank:'Freedom',balance:2345,note:''},
+  {bank:'Halyk',balance:1419,note:'зарплатный'},
+  {bank:'Наличка',balance:49000,note:'~100 EUR'},
+];
+
+const JUNE_TXS=[
+  {date:'2026-06-01',amount:1293750,description:'Зарплата Halyk',bank:'Halyk',type:'income'},
+  {date:'2026-06-01',amount:-25000,description:'Паркинг',bank:'Kaspi',type:'expense'},
+  {date:'2026-06-01',amount:-10000,description:'Подарок Гаухар',bank:'Kaspi',type:'expense'},
+  {date:'2026-06-01',amount:-400,description:'Шарики дочке',bank:'Kaspi',type:'expense'},
+  {date:'2026-06-07',amount:-8750,description:'Мухамбедрахим покер закуп',bank:'Kaspi',type:'expense'},
+  {date:'2026-06-07',amount:-4250,description:'Мухамбедрахим обед',bank:'Kaspi',type:'expense'},
+];
+
+const PROMPTS={
+  parse:`Загружаю выписку банка. Распарси все транзакции и верни ТОЛЬКО JSON массив без пояснений, markdown и backticks:
+[{"date":"YYYY-MM-DD","amount":число,"description":"название контрагента","bank":"Kaspi|Freedom|Halyk","type":"expense|income"}]
+- Минус для расходов, плюс для доходов
+- Переводы между своими счетами — пропусти
+- Дата в формате YYYY-MM-DD`,
+  analyze:`Проанализируй мои расходы за последний месяц из приложения. Где перерасход? На чём можно сэкономить? Сравни с прошлым месяцем если есть данные.`,
+  new_cp:`Посмотри на последние транзакции. Выпиши контрагентов которых нет в базе — новые имена, магазины, сервисы. Предложи категории для каждого.`,
+};
+
+let state={transactions:[],counterparties:[...DEFAULT_CPS],accounts:[...DEFAULT_ACCOUNTS],lastUpdated:null};
+let pieChart=null,monthChart=null,activeMonth='all';
+
+function save(){try{localStorage.setItem('budget_v3',JSON.stringify(state));}catch(e){}}
+function load(){
+  try{const r=localStorage.getItem('budget_v3');if(r)return JSON.parse(r);}catch(e){}
+  return null;
+}
+
+function catById(id){return CATS.find(c=>c.id===id)||CATS[CATS.length-1];}
+function matchCP(desc){
+  if(!desc)return null;
+  const d=desc.toLowerCase();
+  for(const cp of state.counterparties){if(d.includes(cp.name.toLowerCase()))return cp;}
+  return null;
+}
+function fmt(n){return Math.round(Math.abs(n)).toLocaleString('ru-RU')+' ₸';}
+function fmtS(n){return(n>=0?'+':'-')+fmt(n);}
+function isReal(t){const cp=matchCP(t.description);return!cp||(cp.type!=='self'&&cp.type!=='transit'&&cp.type!=='transit_other');}
+function isLoan(t){const cp=matchCP(t.description);return cp&&cp.type==='loan';}
+function getMonths(){return[...new Set(state.transactions.map(t=>t.date.slice(0,7)))].sort().reverse();}
+function filterMonth(txs){return activeMonth==='all'?txs:txs.filter(t=>t.date.startsWith(activeMonth));}
+
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el)el.classList.add('active');
+  if(id==='dashboard')renderDashboard();
+  if(id==='transactions')renderTransactions();
+  if(id==='counterparties')renderCounterparties();
+  if(id==='accounts')renderAccounts();
+}
+
+function buildMonthBar(){
+  const months=getMonths();
+  const bar=document.getElementById('month-bar');
+  bar.innerHTML='';
+  const all=document.createElement('button');
+  all.className='month-btn'+(activeMonth==='all'?' active':'');
+  all.textContent='Все';
+  all.onclick=()=>{activeMonth='all';buildMonthBar();renderDashboard();};
+  bar.appendChild(all);
+  const names=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  months.forEach(m=>{
+    const b=document.createElement('button');
+    b.className='month-btn'+(activeMonth===m?' active':'');
+    const[y,mo]=m.split('-');
+    b.textContent=names[parseInt(mo)-1]+' '+y.slice(2);
+    b.onclick=()=>{activeMonth=m;buildMonthBar();renderDashboard();};
+    bar.appendChild(b);
+  });
+}
+
+function renderDashboard(){
+  buildMonthBar();
+  const all=filterMonth(state.transactions);
+  const real=all.filter(isReal);
+  const income=real.filter(t=>t.amount>0).reduce((s,t)=>s+t.amount,0);
+  const loans=real.filter(isLoan).filter(t=>t.amount<0).reduce((s,t)=>s+Math.abs(t.amount),0);
+  const expense=real.filter(t=>t.amount<0&&!isLoan(t)).reduce((s,t)=>s+Math.abs(t.amount),0);
+  const balance=income-expense-loans;
+
+  document.getElementById('m-income').textContent=income?fmt(income):'—';
+  document.getElementById('m-expense').textContent=expense?fmt(expense):'—';
+  document.getElementById('m-loans').textContent=loans?fmt(loans):'—';
+  const balEl=document.getElementById('m-balance');
+  balEl.textContent=balance?fmtS(balance):'—';
+  balEl.style.color=balance>=0?'var(--green)':'var(--red)';
+
+  const catTotals={};
+  real.filter(t=>t.amount<0&&!isLoan(t)).forEach(t=>{
+    const cp=matchCP(t.description);const cid=cp?cp.cat:'other';
+    if(cid==='transit'||cid==='self')return;
+    catTotals[cid]=(catTotals[cid]||0)+Math.abs(t.amount);
+  });
+  const sorted=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('chart-legend').innerHTML=sorted.map(([id])=>`<span class="legend-item"><span class="legend-dot" style="background:${catById(id).color}"></span>${catById(id).label}</span>`).join('');
+
+  if(pieChart){pieChart.destroy();pieChart=null;}
+  if(sorted.length){
+    pieChart=new Chart(document.getElementById('pieChart'),{
+      type:'doughnut',
+      data:{labels:sorted.map(([id])=>catById(id).label),datasets:[{data:sorted.map(([,v])=>v),backgroundColor:sorted.map(([id])=>catById(id).color),borderWidth:2,borderColor:'#1A1A18'}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'60%'}
+    });
+  }
+
+  const maxA=sorted[0]?sorted[0][1]:1;
+  const total=sorted.reduce((s,[,v])=>s+v,0)||1;
+  document.getElementById('top-cats').innerHTML=sorted.slice(0,8).map(([id,amt])=>{
+    const cat=catById(id);const pct=Math.round(amt/total*100);const bw=Math.round(amt/maxA*100);
+    return`<tr><td style="width:40%"><span class="badge ${cat.badge}">${cat.label}</span></td><td><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:${bw}%;background:${cat.color}"></div></div><span style="font-size:11px;color:var(--text2);min-width:28px;font-family:var(--mono)">${pct}%</span></div></td><td style="text-align:right;font-size:12px;font-weight:700;font-family:var(--mono);color:var(--text)">${fmt(amt)}</td></tr>`;
+  }).join('')||'<tr><td colspan="3" class="empty">Загрузи выписку через вкладку Импорт</td></tr>';
+
+  const transitTxs=filterMonth(state.transactions).filter(t=>{const cp=matchCP(t.description);return cp&&(cp.type==='transit'||cp.type==='transit_other');});
+  const tb=document.getElementById('transit-block');
+  if(transitTxs.length){
+    tb.style.display='block';
+    document.getElementById('transit-table').innerHTML=transitTxs.map(t=>`<tr><td style="color:var(--text2);white-space:nowrap;font-family:var(--mono);padding-left:0">${t.date.slice(5)}</td><td>${t.description}</td><td style="color:var(--text2)">${t.bank||''}</td><td style="text-align:right;font-weight:700;font-family:var(--mono);color:${t.amount<0?'var(--red)':'var(--green)'}">${fmtS(t.amount)}</td></tr>`).join('');
+  }else{tb.style.display='none';}
+  if(state.lastUpdated)document.getElementById('last-updated').textContent='обновлено '+state.lastUpdated;
+}
+
+function renderAccounts(){
+  const accs=state.accounts||[];
+  document.getElementById('accounts-list').innerHTML=accs.map(a=>`
+    <div class="account-card">
+      <div><div class="account-name">${a.bank}</div>${a.note?`<div class="account-meta">${a.note}</div>`:''}</div>
+      <div class="account-balance">${fmt(a.balance)}</div>
+    </div>`).join('');
+  document.getElementById('total-liquid').textContent=fmt(accs.reduce((s,a)=>s+Number(a.balance),0));
+
+  const months=getMonths().slice(0,6).reverse();
+  if(monthChart){monthChart.destroy();monthChart=null;}
+  if(months.length){
+    const mnames=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+    const labels=months.map(m=>{const[y,mo]=m.split('-');return mnames[parseInt(mo)-1];});
+    const incomes=months.map(m=>state.transactions.filter(t=>t.date.startsWith(m)&&isReal(t)&&t.amount>0).reduce((s,t)=>s+t.amount,0));
+    const expenses=months.map(m=>state.transactions.filter(t=>t.date.startsWith(m)&&isReal(t)&&t.amount<0).reduce((s,t)=>s+Math.abs(t.amount),0));
+    monthChart=new Chart(document.getElementById('monthChart'),{
+      type:'bar',
+      data:{labels,datasets:[
+        {label:'Доход',data:incomes,backgroundColor:'rgba(74,222,128,0.7)',borderRadius:4},
+        {label:'Расходы',data:expenses,backgroundColor:'rgba(248,113,113,0.7)',borderRadius:4}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#888780',font:{size:11,family:'IBM Plex Mono'}}}},scales:{x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#888780',font:{size:11,family:'IBM Plex Mono'}}},y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#888780',font:{size:11,family:'IBM Plex Mono'},callback:v=>(v/1000).toFixed(0)+'k'}}}}
+    });
+  }
+}
+
+function saveAccount(){
+  const bank=document.getElementById('acc-bank').value;
+  const balance=Number(document.getElementById('acc-balance').value)||0;
+  const note=document.getElementById('acc-note').value.trim();
+  if(!state.accounts)state.accounts=[];
+  const idx=state.accounts.findIndex(a=>a.bank===bank);
+  if(idx>=0)state.accounts[idx]={bank,balance,note};
+  else state.accounts.push({bank,balance,note});
+  save();renderAccounts();
+  document.getElementById('acc-balance').value='';document.getElementById('acc-note').value='';
+}
+
+function renderTransactions(){
+  const catSel=document.getElementById('filter-cat').value;
+  const monthSel=document.getElementById('filter-month').value;
+  const bankSel=document.getElementById('filter-bank').value;
+  const months=getMonths();
+  const banks=[...new Set(state.transactions.map(t=>t.bank).filter(Boolean))];
+  document.getElementById('filter-cat').innerHTML='<option value="">Все категории</option>'+CATS.map(c=>`<option value="${c.id}"${c.id===catSel?' selected':''}>${c.label}</option>`).join('');
+  document.getElementById('filter-month').innerHTML='<option value="">Все месяцы</option>'+months.map(m=>`<option value="${m}"${m===monthSel?' selected':''}>${m}</option>`).join('');
+  document.getElementById('filter-bank').innerHTML='<option value="">Все банки</option>'+banks.map(b=>`<option value="${b}"${b===bankSel?' selected':''}>${b}</option>`).join('');
+  let txs=[...state.transactions];
+  if(catSel)txs=txs.filter(t=>{const cp=matchCP(t.description);return cp&&cp.cat===catSel;});
+  if(monthSel)txs=txs.filter(t=>t.date.startsWith(monthSel));
+  if(bankSel)txs=txs.filter(t=>t.bank===bankSel);
+  txs.sort((a,b)=>b.date.localeCompare(a.date));
+  const typeMap={transit:'транзит',transit_other:'транзит',self:'себе',loan:'кредит'};
+  document.getElementById('tx-table').innerHTML=txs.map(t=>{
+    const cp=matchCP(t.description);const cat=cp?catById(cp.cat):catById('other');
+    const tb=cp&&typeMap[cp.type]?`<span class="badge b-gray" style="margin-left:4px">${typeMap[cp.type]}</span>`:'';
+    return`<tr><td style="white-space:nowrap;color:var(--text2);font-family:var(--mono);padding-left:16px">${t.date.slice(5)}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.description}">${t.description}</td><td><span class="badge ${cat.badge}">${cat.label}</span>${tb}</td><td style="color:var(--text2)">${t.bank||''}</td><td style="text-align:right;font-weight:700;font-family:var(--mono);color:${t.amount<0?'var(--red)':'var(--green)'};padding-right:16px">${fmtS(t.amount)}</td></tr>`;
+  }).join('')||'<tr><td colspan="5" class="empty">Нет транзакций</td></tr>';
+}
+
+function renderCounterparties(){
+  const q=(document.getElementById('cp-search').value||'').toLowerCase();
+  document.getElementById('cp-cat').innerHTML=CATS.map(c=>`<option value="${c.id}">${c.label}</option>`).join('');
+  const txCounts={};
+  state.transactions.forEach(t=>{const cp=matchCP(t.description);if(cp)txCounts[cp.name]=(txCounts[cp.name]||0)+1;});
+  const cps=state.counterparties.filter(cp=>!q||cp.name.toLowerCase().includes(q));
+  const typeMap={own:'мои расходы',transit:'транзит Гульжан',transit_other:'транзит',income:'доход',loan:'кредит',self:'межбанк'};
+  document.getElementById('cp-table').innerHTML=cps.map(cp=>{
+    const cat=catById(cp.cat);
+    return`<tr><td style="padding-left:16px">${cp.name}</td><td><span class="badge ${cat.badge}">${cat.label}</span></td><td style="color:var(--text2)">${typeMap[cp.type]||cp.type}</td><td style="text-align:right;color:var(--text2);font-family:var(--mono);padding-right:16px">${txCounts[cp.name]||0}</td></tr>`;
+  }).join('')||'<tr><td colspan="4" class="empty">Нет контрагентов</td></tr>';
+}
+
+function toggleAddCP(){const f=document.getElementById('add-cp-form');f.style.display=f.style.display==='none'?'block':'none';}
+function saveCP(){
+  const name=document.getElementById('cp-name').value.trim();
+  const cat=document.getElementById('cp-cat').value;
+  const type=document.getElementById('cp-type').value;
+  if(!name||!cat){alert('Заполни название и категорию');return;}
+  state.counterparties.unshift({name,cat,type});
+  save();document.getElementById('cp-name').value='';toggleAddCP();renderCounterparties();
+}
+
+function importJSON(){
+  const raw=document.getElementById('json-input').value.trim();
+  const status=document.getElementById('import-status');
+  if(!raw){status.textContent='Вставь JSON';return;}
+  try{
+    const txs=JSON.parse(raw);
+    if(!Array.isArray(txs))throw new Error('Не массив');
+    let added=0,skipped=0;
+    const existing=new Set(state.transactions.map(t=>t.date+'|'+t.amount+'|'+t.description));
+    txs.forEach(t=>{
+      const key=t.date+'|'+t.amount+'|'+t.description;
+      if(existing.has(key)){skipped++;return;}
+      state.transactions.push({date:t.date,amount:Number(t.amount),description:t.description,bank:t.bank||'',type:t.type||''});
+      added++;
+    });
+    state.lastUpdated=new Date().toLocaleDateString('ru-RU');
+    save();
+    status.style.color='var(--green)';
+    status.textContent=`✓ добавлено: ${added} / дубли: ${skipped}`;
+    document.getElementById('json-input').value='';
+    renderDashboard();
+  }catch(e){status.style.color='var(--red)';status.textContent='ошибка: '+e.message;}
+}
+
+function clearImport(){document.getElementById('json-input').value='';document.getElementById('import-status').textContent='';}
+
+function copyPrompt(key){
+  navigator.clipboard.writeText(PROMPTS[key]).then(()=>{
+    const s=document.getElementById('copy-status');
+    s.textContent='✓ скопировано в буфер';
+    setTimeout(()=>s.textContent='',2000);
+  });
+}
+
+function resetAll(){
+  if(!confirm('Удалить все транзакции?'))return;
+  state.transactions=[];save();renderDashboard();
+}
+
+(function init(){
+  const saved=load();
+  if(saved){
+    state=saved;
+    if(!state.counterparties||state.counterparties.length<5)state.counterparties=[...DEFAULT_CPS];
+    if(!state.accounts||!state.accounts.length)state.accounts=[...DEFAULT_ACCOUNTS];
+  }
+  // Загружаем июньские транзакции если их ещё нет
+  const existing=new Set(state.transactions.map(t=>t.date+'|'+t.amount+'|'+t.description));
+  JUNE_TXS.forEach(t=>{
+    const key=t.date+'|'+t.amount+'|'+t.description;
+    if(!existing.has(key))state.transactions.push(t);
+  });
+  if(!state.lastUpdated)state.lastUpdated=new Date().toLocaleDateString('ru-RU');
+  save();
+  renderDashboard();
+})();
+</script>
+</body>
+</html>
 
